@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/tapayoka_types",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "TypeScript types for Tapayoka - QR-to-device cashless payment system",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

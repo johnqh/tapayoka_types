@@ -30,11 +30,7 @@ export type OrderStatus =
   | 'DONE'
   | 'FAILED';
 
-export type DeviceStatus =
-  | 'ACTIVE'
-  | 'OFFLINE'
-  | 'MAINTENANCE'
-  | 'DEACTIVATED';
+export type DeviceStatus = 'ACTIVE' | 'OFFLINE' | 'MAINTENANCE' | 'DEACTIVATED';
 
 export type UserRole = 'vendor' | 'buyer';
 
@@ -360,8 +356,7 @@ export interface BleDeviceInfo {
 // =============================================================================
 
 export const BLE_SERVICE_UUID = '000088F4-0000-1000-8000-00805f9b34fb';
-export const BLE_CHAR_DEVICE_INFO_UUID =
-  '00000E32-0000-1000-8000-00805f9b34fb';
+export const BLE_CHAR_DEVICE_INFO_UUID = '00000E32-0000-1000-8000-00805f9b34fb';
 export const BLE_CHAR_COMMAND_UUID = '00000E33-0000-1000-8000-00805f9b34fb';
 export const BLE_CHAR_RESPONSE_UUID = '00000E34-0000-1000-8000-00805f9b34fb';
 export const BLE_DEVICE_NAME_PREFIX = 'tapayoka-';
