@@ -1,0 +1,63 @@
+{
+  "name": "@sudobility/tapayoka_types",
+  "version": "0.0.1",
+  "description": "TypeScript types for Tapayoka - QR-to-device cashless payment system",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "bun run build:esm && bun run build:cjs",
+    "build:esm": "bunx tsc -p tsconfig.esm.json",
+    "build:cjs": "bunx tsc -p tsconfig.cjs.json && bun run build:cjs-rename && rm -rf dist-cjs",
+    "build:cjs-rename": "find dist-cjs -name '*.js' -exec sh -c 'cp \"$1\" \"dist/$(basename \"${1%.js}.cjs\")\"' _ {} \\;",
+    "clean": "rm -rf dist",
+    "dev": "bunx tsc --watch",
+    "typecheck": "bunx tsc --noEmit",
+    "lint": "bunx eslint src/",
+    "lint:fix": "bunx eslint src/ --fix",
+    "format": "bunx prettier --write \"src/**/*.ts\"",
+    "format:check": "bunx prettier --check \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "bun run typecheck && bun run lint && bun run build",
+    "prepublishOnly": "bun run clean && bun run verify"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": [
+    "typescript",
+    "types",
+    "tapayoka",
+    "cashless",
+    "payment",
+    "ble",
+    "iot"
+  ],
+  "author": "Sudobility",
+  "license": "BUSL-1.1",
+  "peerDependencies": {
+    "@sudobility/types": "^1.9.54"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@sudobility/types": "^1.9.54",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
