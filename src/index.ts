@@ -129,6 +129,57 @@ export interface AdminLog {
 }
 
 // =============================================================================
+// Domain Models — Vendor Management
+// =============================================================================
+
+export interface VendorLocation {
+  id: string;
+  firebaseUserId: string;
+  name: string;
+  address: string;
+  city: string;
+  stateProvince: string;
+  zipcode: string;
+  country: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface VendorEquipmentCategory {
+  id: string;
+  firebaseUserId: string;
+  name: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface VendorService {
+  id: string;
+  vendorLocationId: string;
+  vendorEquipmentCategoryId: string;
+  name: string;
+  price: string;
+  currencyCode: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface VendorServiceControl {
+  id: string;
+  vendorServiceId: string;
+  pinNumber: number;
+  duration: number;
+}
+
+export interface VendorEquipment {
+  walletAddress: string;
+  vendorServiceId: string;
+  name: string;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+// =============================================================================
 // Request Types — Buyer Endpoints
 // =============================================================================
 
@@ -218,6 +269,74 @@ export interface QrGenerateRequest {
   deviceWalletAddress: string;
   format?: 'svg' | 'png';
   size?: number;
+}
+
+// =============================================================================
+// Request Types — Vendor Management
+// =============================================================================
+
+export interface VendorLocationCreateRequest {
+  name: string;
+  address: string;
+  city: string;
+  stateProvince: string;
+  zipcode: string;
+  country: string;
+}
+
+export interface VendorLocationUpdateRequest {
+  name?: string;
+  address?: string;
+  city?: string;
+  stateProvince?: string;
+  zipcode?: string;
+  country?: string;
+}
+
+export interface VendorEquipmentCategoryCreateRequest {
+  name: string;
+}
+
+export interface VendorEquipmentCategoryUpdateRequest {
+  name?: string;
+}
+
+export interface VendorServiceCreateRequest {
+  vendorLocationId: string;
+  vendorEquipmentCategoryId: string;
+  name: string;
+  price: string;
+  currencyCode?: string;
+}
+
+export interface VendorServiceUpdateRequest {
+  vendorLocationId?: string;
+  vendorEquipmentCategoryId?: string;
+  name?: string;
+  price?: string;
+  currencyCode?: string;
+}
+
+export interface VendorServiceControlCreateRequest {
+  vendorServiceId: string;
+  pinNumber: number;
+  duration: number;
+}
+
+export interface VendorServiceControlUpdateRequest {
+  pinNumber?: number;
+  duration?: number;
+}
+
+export interface VendorEquipmentCreateRequest {
+  walletAddress: string;
+  vendorServiceId: string;
+  name: string;
+}
+
+export interface VendorEquipmentUpdateRequest {
+  name?: string;
+  vendorServiceId?: string;
 }
 
 // =============================================================================
@@ -427,6 +546,18 @@ export type QrCodeApiResponse = BaseResponse<QrCodeResponse>;
 // Log responses
 export type DeviceLogListResponse = BaseResponse<DeviceLog[]>;
 export type AdminLogListResponse = BaseResponse<AdminLog[]>;
+
+// Vendor management responses
+export type VendorLocationListResponse = BaseResponse<VendorLocation[]>;
+export type VendorLocationResponse = BaseResponse<VendorLocation>;
+export type VendorEquipmentCategoryListResponse = BaseResponse<VendorEquipmentCategory[]>;
+export type VendorEquipmentCategoryResponse = BaseResponse<VendorEquipmentCategory>;
+export type VendorServiceListResponse = BaseResponse<VendorService[]>;
+export type VendorServiceResponse = BaseResponse<VendorService>;
+export type VendorServiceControlListResponse = BaseResponse<VendorServiceControl[]>;
+export type VendorServiceControlResponse = BaseResponse<VendorServiceControl>;
+export type VendorEquipmentListResponse = BaseResponse<VendorEquipment[]>;
+export type VendorEquipmentResponse = BaseResponse<VendorEquipment>;
 
 // Health check
 export interface HealthCheckData {
