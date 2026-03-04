@@ -46,8 +46,18 @@ export interface User {
   email: string | null;
   displayName: string | null;
   role: UserRole;
+  tosAcceptedAt: Date | null;
   createdAt: Date | null;
   updatedAt: Date | null;
+}
+
+export interface UserProfile {
+  id: string;
+  firebaseUid: string;
+  email: string | null;
+  displayName: string | null;
+  role: UserRole;
+  tosAcceptedAt: string | null;
 }
 
 export interface Device {
@@ -134,7 +144,7 @@ export interface AdminLog {
 
 export interface VendorLocation {
   id: string;
-  firebaseUserId: string;
+  entityId: string;
   name: string;
   address: string;
   city: string;
@@ -147,7 +157,7 @@ export interface VendorLocation {
 
 export interface VendorEquipmentCategory {
   id: string;
-  firebaseUserId: string;
+  entityId: string;
   name: string;
   createdAt: Date | null;
   updatedAt: Date | null;
