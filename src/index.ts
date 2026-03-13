@@ -20,7 +20,7 @@ import type { Optional, BaseResponse } from '@sudobility/types';
 // Enums
 // =============================================================================
 
-export type ServiceType = 'TRIGGER' | 'FIXED' | 'VARIABLE';
+export type InstallationType = 'TRIGGER' | 'FIXED' | 'VARIABLE';
 
 export type OrderStatus =
   | 'CREATED'
@@ -35,6 +35,8 @@ export type DeviceStatus = 'ACTIVE' | 'OFFLINE' | 'MAINTENANCE' | 'DEACTIVATED';
 export type UserRole = 'vendor' | 'buyer';
 
 export type LogDirection = 'PI_TO_SRV' | 'SRV_TO_PI';
+
+export type VendorModelType = 'Washer' | 'Dryer' | 'Parking' | 'Locker' | 'Vending';
 
 // =============================================================================
 // Domain Models (database entities)
@@ -78,12 +80,12 @@ export interface GpioConfig {
   activeLow?: boolean;
 }
 
-export interface Service {
+export interface Installation {
   id: string;
   entityId: string;
   name: string;
   description: string | null;
-  type: ServiceType;
+  type: InstallationType;
   priceCents: number;
   fixedMinutes: number | null;
   minutesPer25c: number | null;
@@ -92,15 +94,15 @@ export interface Service {
   updatedAt: Date | null;
 }
 
-export interface DeviceService {
+export interface DeviceInstallation {
   deviceWalletAddress: string;
-  serviceId: string;
+  installationId: string;
 }
 
 export interface Order {
   id: string;
   deviceWalletAddress: string;
-  serviceId: string;
+  installationId: string;
   buyerUid: string | null;
   amountCents: number;
   authorizedSeconds: number;
@@ -155,18 +157,19 @@ export interface VendorLocation {
   updatedAt: Date | null;
 }
 
-export interface VendorEquipmentCategory {
+export interface VendorModel {
   id: string;
   entityId: string;
   name: string;
+  type: VendorModelType | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
 
-export interface VendorService {
+export interface VendorInstallation {
   id: string;
   vendorLocationId: string;
-  vendorEquipmentCategoryId: string;
+  vendorModelId: string;
   name: string;
   price: string;
   currencyCode: string;
@@ -174,16 +177,16 @@ export interface VendorService {
   updatedAt: Date | null;
 }
 
-export interface VendorServiceControl {
+export interface VendorInstallationControl {
   id: string;
-  vendorServiceId: string;
+  vendorInstallationId: string;
   pinNumber: number;
   duration: number;
 }
 
 export interface VendorEquipment {
   walletAddress: string;
-  vendorServiceId: string;
+  vendorInstallationId: string;
   name: string;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -203,7 +206,7 @@ export interface DeviceVerifyRequest {
 /** Create a new order */
 export interface CreateOrderRequest {
   deviceWalletAddress: string;
-  serviceId: string;
+  installationId: string;
   amountCents: number;
 }
 
@@ -248,30 +251,30 @@ export interface DeviceUpdateRequest {
   status: Optional<DeviceStatus>;
 }
 
-/** Create a new service/product */
-export interface ServiceCreateRequest {
+/** Create a new installation */
+export interface InstallationCreateRequest {
   name: string;
   description: Optional<string>;
-  type: ServiceType;
+  type: InstallationType;
   priceCents: number;
   fixedMinutes: Optional<number>;
   minutesPer25c: Optional<number>;
 }
 
-/** Update an existing service */
-export interface ServiceUpdateRequest {
+/** Update an existing installation */
+export interface InstallationUpdateRequest {
   name: Optional<string>;
   description: Optional<string>;
-  type: Optional<ServiceType>;
+  type: Optional<InstallationType>;
   priceCents: Optional<number>;
   fixedMinutes: Optional<number>;
   minutesPer25c: Optional<number>;
   active: Optional<boolean>;
 }
 
-/** Assign services to a device */
-export interface DeviceServiceAssignRequest {
-  serviceIds: string[];
+/** Assign installations to a device */
+export interface DeviceInstallationAssignRequest {
+  installationIds: string[];
 }
 
 /** Generate QR code for a device */
@@ -303,50 +306,52 @@ export interface VendorLocationUpdateRequest {
   country?: string;
 }
 
-export interface VendorEquipmentCategoryCreateRequest {
+export interface VendorModelCreateRequest {
   name: string;
+  type?: VendorModelType;
 }
 
-export interface VendorEquipmentCategoryUpdateRequest {
+export interface VendorModelUpdateRequest {
   name?: string;
+  type?: VendorModelType;
 }
 
-export interface VendorServiceCreateRequest {
+export interface VendorInstallationCreateRequest {
   vendorLocationId: string;
-  vendorEquipmentCategoryId: string;
+  vendorModelId: string;
   name: string;
   price: string;
   currencyCode?: string;
 }
 
-export interface VendorServiceUpdateRequest {
+export interface VendorInstallationUpdateRequest {
   vendorLocationId?: string;
-  vendorEquipmentCategoryId?: string;
+  vendorModelId?: string;
   name?: string;
   price?: string;
   currencyCode?: string;
 }
 
-export interface VendorServiceControlCreateRequest {
-  vendorServiceId: string;
+export interface VendorInstallationControlCreateRequest {
+  vendorInstallationId: string;
   pinNumber: number;
   duration: number;
 }
 
-export interface VendorServiceControlUpdateRequest {
+export interface VendorInstallationControlUpdateRequest {
   pinNumber?: number;
   duration?: number;
 }
 
 export interface VendorEquipmentCreateRequest {
   walletAddress: string;
-  vendorServiceId: string;
+  vendorInstallationId: string;
   name: string;
 }
 
 export interface VendorEquipmentUpdateRequest {
   name?: string;
-  vendorServiceId?: string;
+  vendorInstallationId?: string;
 }
 
 // =============================================================================
@@ -356,7 +361,7 @@ export interface VendorEquipmentUpdateRequest {
 /** Response after verifying device signature */
 export interface DeviceVerifyResponse {
   device: Device;
-  services: Service[];
+  installations: Installation[];
 }
 
 /** Response with signed authorization */
@@ -404,8 +409,8 @@ export interface DeviceSummary extends Device {
 /** Order with joined details */
 export interface OrderDetailed extends Order {
   deviceLabel: string;
-  serviceName: string;
-  serviceType: ServiceType;
+  installationName: string;
+  installationType: InstallationType;
 }
 
 /** QR code generation response */
@@ -453,7 +458,7 @@ export interface BleDeviceChallenge {
 /** Authorization payload sent to device via BLE */
 export interface AuthorizationPayload {
   orderId: string;
-  serviceType: ServiceType;
+  installationType: InstallationType;
   seconds: number;
   nonce: string;
   exp: number;
@@ -533,9 +538,9 @@ export type DeviceSummaryListResponse = BaseResponse<DeviceSummary[]>;
 export type DeviceResponse = BaseResponse<Device>;
 export type DeviceVerifyApiResponse = BaseResponse<DeviceVerifyResponse>;
 
-// Service responses
-export type ServiceListResponse = BaseResponse<Service[]>;
-export type ServiceResponse = BaseResponse<Service>;
+// Installation responses
+export type InstallationListResponse = BaseResponse<Installation[]>;
+export type InstallationResponse = BaseResponse<Installation>;
 
 // Order responses
 export type OrderListResponse = BaseResponse<Order[]>;
@@ -560,12 +565,12 @@ export type AdminLogListResponse = BaseResponse<AdminLog[]>;
 // Vendor management responses
 export type VendorLocationListResponse = BaseResponse<VendorLocation[]>;
 export type VendorLocationResponse = BaseResponse<VendorLocation>;
-export type VendorEquipmentCategoryListResponse = BaseResponse<VendorEquipmentCategory[]>;
-export type VendorEquipmentCategoryResponse = BaseResponse<VendorEquipmentCategory>;
-export type VendorServiceListResponse = BaseResponse<VendorService[]>;
-export type VendorServiceResponse = BaseResponse<VendorService>;
-export type VendorServiceControlListResponse = BaseResponse<VendorServiceControl[]>;
-export type VendorServiceControlResponse = BaseResponse<VendorServiceControl>;
+export type VendorModelListResponse = BaseResponse<VendorModel[]>;
+export type VendorModelResponse = BaseResponse<VendorModel>;
+export type VendorInstallationListResponse = BaseResponse<VendorInstallation[]>;
+export type VendorInstallationResponse = BaseResponse<VendorInstallation>;
+export type VendorInstallationControlListResponse = BaseResponse<VendorInstallationControl[]>;
+export type VendorInstallationControlResponse = BaseResponse<VendorInstallationControl>;
 export type VendorEquipmentListResponse = BaseResponse<VendorEquipment[]>;
 export type VendorEquipmentResponse = BaseResponse<VendorEquipment>;
 
