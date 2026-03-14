@@ -38,6 +38,8 @@ export type LogDirection = 'PI_TO_SRV' | 'SRV_TO_PI';
 
 export type VendorModelType = 'Washer' | 'Dryer' | 'Parking' | 'Locker' | 'Vending';
 
+export type VendorModelPricing = 'fixed' | 'variableAtStart' | 'variableAtEnd';
+
 // =============================================================================
 // Domain Models (database entities)
 // =============================================================================
@@ -162,6 +164,7 @@ export interface VendorModel {
   entityId: string;
   name: string;
   type: VendorModelType | null;
+  pricing: VendorModelPricing | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -309,11 +312,13 @@ export interface VendorLocationUpdateRequest {
 export interface VendorModelCreateRequest {
   name: string;
   type?: VendorModelType;
+  pricing?: VendorModelPricing;
 }
 
 export interface VendorModelUpdateRequest {
   name?: string;
   type?: VendorModelType;
+  pricing?: VendorModelPricing;
 }
 
 export interface VendorInstallationCreateRequest {
