@@ -46,6 +46,10 @@ export type VendorModelInterruption = 'stop' | 'continue';
 
 export type VendorModelPayment = 'atStart' | 'atEnd';
 
+export type VendorModelSlot = 'single' | 'multi';
+
+export type DurationUnit = 'minutes' | 'hours';
+
 export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
 export interface DailySchedule {
@@ -53,6 +57,46 @@ export interface DailySchedule {
   startTime: string;
   endTime: string;
 }
+
+// =============================================================================
+// Pricing Types
+// =============================================================================
+
+export interface InstallationSignal {
+  pinNumber: number;
+  duration: number;
+}
+
+export interface VariablePricingConfig {
+  type: 'variable';
+  currencyCode: string;
+  startPrice: string;
+  startDuration: number;
+  startDurationUnit: DurationUnit;
+  marginalPrice: string;
+  marginalDuration: number;
+  marginalDurationUnit: DurationUnit;
+  pinNumber: number;
+}
+
+export interface FixedPricingConfig {
+  type: 'fixed';
+  currencyCode: string;
+  price: string;
+  signals: InstallationSignal[];
+}
+
+export interface SlotPricing {
+  name: string;
+  pricing: VariablePricingConfig | FixedPricingConfig;
+}
+
+export interface MultiSlotPricingConfig {
+  type: 'multi';
+  slots: SlotPricing[];
+}
+
+export type VendorInstallationPricing = VariablePricingConfig | FixedPricingConfig | MultiSlotPricingConfig;
 
 // =============================================================================
 // Domain Models (database entities)
@@ -179,6 +223,7 @@ export interface VendorModel {
   name: string;
   type: VendorModelType | null;
   pricing: VendorModelPricing | null;
+  slot: VendorModelSlot | null;
   action: VendorModelAction | null;
   interruption: VendorModelInterruption | null;
   payment: VendorModelPayment | null;
@@ -192,8 +237,7 @@ export interface VendorInstallation {
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  price: string;
-  currencyCode: string;
+  pricing: VendorInstallationPricing;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -331,6 +375,7 @@ export interface VendorModelCreateRequest {
   name: string;
   type?: VendorModelType;
   pricing?: VendorModelPricing;
+  slot?: VendorModelSlot;
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
@@ -341,6 +386,7 @@ export interface VendorModelUpdateRequest {
   name?: string;
   type?: VendorModelType;
   pricing?: VendorModelPricing;
+  slot?: VendorModelSlot;
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
@@ -351,16 +397,14 @@ export interface VendorInstallationCreateRequest {
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  price: string;
-  currencyCode?: string;
+  pricing: VendorInstallationPricing;
 }
 
 export interface VendorInstallationUpdateRequest {
   vendorLocationId?: string;
   vendorModelId?: string;
   name?: string;
-  price?: string;
-  currencyCode?: string;
+  pricing?: VendorInstallationPricing;
 }
 
 export interface VendorInstallationControlCreateRequest {
