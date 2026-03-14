@@ -38,7 +38,21 @@ export type LogDirection = 'PI_TO_SRV' | 'SRV_TO_PI';
 
 export type VendorModelType = 'Washer' | 'Dryer' | 'Parking' | 'Locker' | 'Vending';
 
-export type VendorModelPricing = 'fixed' | 'variableAtStart' | 'variableAtEnd';
+export type VendorModelPricing = 'fixed' | 'variable';
+
+export type VendorModelAction = 'timed' | 'sequence';
+
+export type VendorModelInterruption = 'stop' | 'continue';
+
+export type VendorModelPayment = 'atStart' | 'atEnd';
+
+export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+
+export interface DailySchedule {
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+}
 
 // =============================================================================
 // Domain Models (database entities)
@@ -165,6 +179,10 @@ export interface VendorModel {
   name: string;
   type: VendorModelType | null;
   pricing: VendorModelPricing | null;
+  action: VendorModelAction | null;
+  interruption: VendorModelInterruption | null;
+  payment: VendorModelPayment | null;
+  schedule: DailySchedule[] | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -313,12 +331,20 @@ export interface VendorModelCreateRequest {
   name: string;
   type?: VendorModelType;
   pricing?: VendorModelPricing;
+  action?: VendorModelAction;
+  interruption?: VendorModelInterruption;
+  payment?: VendorModelPayment;
+  schedule?: DailySchedule[];
 }
 
 export interface VendorModelUpdateRequest {
   name?: string;
   type?: VendorModelType;
   pricing?: VendorModelPricing;
+  action?: VendorModelAction;
+  interruption?: VendorModelInterruption;
+  payment?: VendorModelPayment;
+  schedule?: DailySchedule[] | null;
 }
 
 export interface VendorInstallationCreateRequest {
