@@ -36,7 +36,12 @@ export type UserRole = 'vendor' | 'buyer';
 
 export type LogDirection = 'PI_TO_SRV' | 'SRV_TO_PI';
 
-export type VendorModelType = 'Washer' | 'Dryer' | 'Parking' | 'Locker' | 'Vending';
+export type VendorModelType =
+  | 'Washer'
+  | 'Dryer'
+  | 'Parking'
+  | 'Locker'
+  | 'Vending';
 
 export type VendorModelPricing = 'fixed' | 'variable';
 
@@ -50,7 +55,14 @@ export type VendorModelSlot = 'single' | 'multi';
 
 export type DurationUnit = 'minutes' | 'hours';
 
-export type DayOfWeek = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+export type DayOfWeek =
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday';
 
 export interface DailySchedule {
   dayOfWeek: DayOfWeek;
@@ -96,7 +108,10 @@ export interface MultiSlotPricingConfig {
   slots: SlotPricing[];
 }
 
-export type VendorInstallationPricing = VariablePricingConfig | FixedPricingConfig | MultiSlotPricingConfig;
+export type VendorInstallationPricing =
+  | VariablePricingConfig
+  | FixedPricingConfig
+  | MultiSlotPricingConfig;
 
 // =============================================================================
 // Domain Models (database entities)
@@ -644,8 +659,11 @@ export type VendorModelListResponse = BaseResponse<VendorModel[]>;
 export type VendorModelResponse = BaseResponse<VendorModel>;
 export type VendorInstallationListResponse = BaseResponse<VendorInstallation[]>;
 export type VendorInstallationResponse = BaseResponse<VendorInstallation>;
-export type VendorInstallationControlListResponse = BaseResponse<VendorInstallationControl[]>;
-export type VendorInstallationControlResponse = BaseResponse<VendorInstallationControl>;
+export type VendorInstallationControlListResponse = BaseResponse<
+  VendorInstallationControl[]
+>;
+export type VendorInstallationControlResponse =
+  BaseResponse<VendorInstallationControl>;
 export type VendorEquipmentListResponse = BaseResponse<VendorEquipment[]>;
 export type VendorEquipmentResponse = BaseResponse<VendorEquipment>;
 
