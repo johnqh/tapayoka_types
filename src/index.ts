@@ -20,7 +20,7 @@ import type { Optional, BaseResponse } from '@sudobility/types';
 // Enums
 // =============================================================================
 
-export type InstallationType = 'TRIGGER' | 'FIXED' | 'VARIABLE';
+export type OfferingType = 'TRIGGER' | 'FIXED' | 'VARIABLE';
 
 export type OrderStatus =
   | 'CREATED'
@@ -74,7 +74,7 @@ export interface DailySchedule {
 // Pricing Types
 // =============================================================================
 
-export interface InstallationSignal {
+export interface OfferingSignal {
   pinNumber: number;
   duration: number;
 }
@@ -95,7 +95,7 @@ export interface FixedPricingConfig {
   type: 'fixed';
   currencyCode: string;
   price: string;
-  signals: InstallationSignal[];
+  signals: OfferingSignal[];
 }
 
 export interface SlotPricing {
@@ -108,7 +108,7 @@ export interface MultiSlotPricingConfig {
   slots: SlotPricing[];
 }
 
-export type VendorInstallationPricing =
+export type VendorOfferingPricing =
   | VariablePricingConfig
   | FixedPricingConfig
   | MultiSlotPricingConfig;
@@ -155,12 +155,12 @@ export interface GpioConfig {
   activeLow?: boolean;
 }
 
-export interface Installation {
+export interface Offering {
   id: string;
   entityId: string;
   name: string;
   description: string | null;
-  type: InstallationType;
+  type: OfferingType;
   priceCents: number;
   fixedMinutes: number | null;
   minutesPer25c: number | null;
@@ -169,15 +169,15 @@ export interface Installation {
   updatedAt: Date | null;
 }
 
-export interface DeviceInstallation {
+export interface DeviceOffering {
   deviceWalletAddress: string;
-  installationId: string;
+  offeringId: string;
 }
 
 export interface Order {
   id: string;
   deviceWalletAddress: string;
-  installationId: string;
+  offeringId: string;
   buyerUid: string | null;
   amountCents: number;
   authorizedSeconds: number;
@@ -247,26 +247,19 @@ export interface VendorModel {
   updatedAt: Date | null;
 }
 
-export interface VendorInstallation {
+export interface VendorOffering {
   id: string;
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  pricing: VendorInstallationPricing;
+  pricing: VendorOfferingPricing;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
 
-export interface VendorInstallationControl {
-  id: string;
-  vendorInstallationId: string;
-  pinNumber: number;
-  duration: number;
-}
-
 export interface VendorEquipment {
   walletAddress: string;
-  vendorInstallationId: string;
+  vendorOfferingId: string;
   name: string;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -286,7 +279,7 @@ export interface DeviceVerifyRequest {
 /** Create a new order */
 export interface CreateOrderRequest {
   deviceWalletAddress: string;
-  installationId: string;
+  offeringId: string;
   amountCents: number;
 }
 
@@ -332,29 +325,29 @@ export interface DeviceUpdateRequest {
 }
 
 /** Create a new installation */
-export interface InstallationCreateRequest {
+export interface OfferingCreateRequest {
   name: string;
   description: Optional<string>;
-  type: InstallationType;
+  type: OfferingType;
   priceCents: number;
   fixedMinutes: Optional<number>;
   minutesPer25c: Optional<number>;
 }
 
 /** Update an existing installation */
-export interface InstallationUpdateRequest {
+export interface OfferingUpdateRequest {
   name: Optional<string>;
   description: Optional<string>;
-  type: Optional<InstallationType>;
+  type: Optional<OfferingType>;
   priceCents: Optional<number>;
   fixedMinutes: Optional<number>;
   minutesPer25c: Optional<number>;
   active: Optional<boolean>;
 }
 
-/** Assign installations to a device */
-export interface DeviceInstallationAssignRequest {
-  installationIds: string[];
+/** Assign offerings to a device */
+export interface DeviceOfferingAssignRequest {
+  offeringIds: string[];
 }
 
 /** Generate QR code for a device */
@@ -408,40 +401,29 @@ export interface VendorModelUpdateRequest {
   schedule?: DailySchedule[] | null;
 }
 
-export interface VendorInstallationCreateRequest {
+export interface VendorOfferingCreateRequest {
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  pricing: VendorInstallationPricing;
+  pricing: VendorOfferingPricing;
 }
 
-export interface VendorInstallationUpdateRequest {
+export interface VendorOfferingUpdateRequest {
   vendorLocationId?: string;
   vendorModelId?: string;
   name?: string;
-  pricing?: VendorInstallationPricing;
-}
-
-export interface VendorInstallationControlCreateRequest {
-  vendorInstallationId: string;
-  pinNumber: number;
-  duration: number;
-}
-
-export interface VendorInstallationControlUpdateRequest {
-  pinNumber?: number;
-  duration?: number;
+  pricing?: VendorOfferingPricing;
 }
 
 export interface VendorEquipmentCreateRequest {
   walletAddress: string;
-  vendorInstallationId: string;
+  vendorOfferingId: string;
   name: string;
 }
 
 export interface VendorEquipmentUpdateRequest {
   name?: string;
-  vendorInstallationId?: string;
+  vendorOfferingId?: string;
 }
 
 // =============================================================================
@@ -451,7 +433,7 @@ export interface VendorEquipmentUpdateRequest {
 /** Response after verifying device signature */
 export interface DeviceVerifyResponse {
   device: Device;
-  installations: Installation[];
+  offerings: Offering[];
 }
 
 /** Response with signed authorization */
@@ -499,8 +481,8 @@ export interface DeviceSummary extends Device {
 /** Order with joined details */
 export interface OrderDetailed extends Order {
   deviceLabel: string;
-  installationName: string;
-  installationType: InstallationType;
+  offeringName: string;
+  offeringType: OfferingType;
 }
 
 /** QR code generation response */
@@ -548,7 +530,7 @@ export interface BleDeviceChallenge {
 /** Authorization payload sent to device via BLE */
 export interface AuthorizationPayload {
   orderId: string;
-  installationType: InstallationType;
+  offeringType: OfferingType;
   seconds: number;
   nonce: string;
   exp: number;
@@ -628,9 +610,9 @@ export type DeviceSummaryListResponse = BaseResponse<DeviceSummary[]>;
 export type DeviceResponse = BaseResponse<Device>;
 export type DeviceVerifyApiResponse = BaseResponse<DeviceVerifyResponse>;
 
-// Installation responses
-export type InstallationListResponse = BaseResponse<Installation[]>;
-export type InstallationResponse = BaseResponse<Installation>;
+// Offering responses
+export type OfferingListResponse = BaseResponse<Offering[]>;
+export type OfferingResponse = BaseResponse<Offering>;
 
 // Order responses
 export type OrderListResponse = BaseResponse<Order[]>;
@@ -657,13 +639,8 @@ export type VendorLocationListResponse = BaseResponse<VendorLocation[]>;
 export type VendorLocationResponse = BaseResponse<VendorLocation>;
 export type VendorModelListResponse = BaseResponse<VendorModel[]>;
 export type VendorModelResponse = BaseResponse<VendorModel>;
-export type VendorInstallationListResponse = BaseResponse<VendorInstallation[]>;
-export type VendorInstallationResponse = BaseResponse<VendorInstallation>;
-export type VendorInstallationControlListResponse = BaseResponse<
-  VendorInstallationControl[]
->;
-export type VendorInstallationControlResponse =
-  BaseResponse<VendorInstallationControl>;
+export type VendorOfferingListResponse = BaseResponse<VendorOffering[]>;
+export type VendorOfferingResponse = BaseResponse<VendorOffering>;
 export type VendorEquipmentListResponse = BaseResponse<VendorEquipment[]>;
 export type VendorEquipmentResponse = BaseResponse<VendorEquipment>;
 
