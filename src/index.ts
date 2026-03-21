@@ -257,10 +257,10 @@ export interface VendorOffering {
   updatedAt: Date | null;
 }
 
-export interface VendorEquipment {
+export interface VendorInstallation {
   walletAddress: string;
   vendorOfferingId: string;
-  name: string;
+  label: string;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -415,14 +415,14 @@ export interface VendorOfferingUpdateRequest {
   pricing?: VendorOfferingPricing;
 }
 
-export interface VendorEquipmentCreateRequest {
+export interface VendorInstallationCreateRequest {
   walletAddress: string;
   vendorOfferingId: string;
-  name: string;
+  label: string;
 }
 
-export interface VendorEquipmentUpdateRequest {
-  name?: string;
+export interface VendorInstallationUpdateRequest {
+  label?: string;
   vendorOfferingId?: string;
 }
 
@@ -641,8 +641,8 @@ export type VendorModelListResponse = BaseResponse<VendorModel[]>;
 export type VendorModelResponse = BaseResponse<VendorModel>;
 export type VendorOfferingListResponse = BaseResponse<VendorOffering[]>;
 export type VendorOfferingResponse = BaseResponse<VendorOffering>;
-export type VendorEquipmentListResponse = BaseResponse<VendorEquipment[]>;
-export type VendorEquipmentResponse = BaseResponse<VendorEquipment>;
+export type VendorInstallationListResponse = BaseResponse<VendorInstallation[]>;
+export type VendorInstallationResponse = BaseResponse<VendorInstallation>;
 
 // Health check
 export interface HealthCheckData {
