@@ -53,7 +53,7 @@ export type VendorModelPayment = 'atStart' | 'atEnd';
 
 export type VendorModelSlot = 'single' | 'multi1D' | 'multi2D';
 
-export type VendorModelSlotPricing = 'Same' | 'Different';
+export type VendorModelSlotPricing = 'Same' | 'Different' | 'Tiered';
 
 export type DurationUnit = 'minutes' | 'hours';
 
