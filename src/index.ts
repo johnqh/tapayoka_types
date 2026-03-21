@@ -176,6 +176,7 @@ export interface Order {
   authorizedSeconds: number;
   status: OrderStatus;
   stripePaymentIntentId: string | null;
+  slotId: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -270,6 +271,7 @@ export interface VendorInstallationSlot {
   sortOrder: number;
   pricingTierId: string | null;
   pricingTier: PricingTier | null;
+  available?: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -290,6 +292,7 @@ export interface CreateOrderRequest {
   deviceWalletAddress: string;
   offeringId: string;
   amountCents: number;
+  slotId?: string;
 }
 
 /** Process payment for an order */
@@ -472,6 +475,7 @@ export interface VendorInstallationSlotBulkCreateRequest {
 export interface DeviceVerifyResponse {
   device: Device;
   offerings: Offering[];
+  slotType: VendorModelSlot | null;
 }
 
 /** Response with signed authorization */
