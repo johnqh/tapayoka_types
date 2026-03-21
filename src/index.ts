@@ -51,7 +51,9 @@ export type VendorModelInterruption = 'stop' | 'continue';
 
 export type VendorModelPayment = 'atStart' | 'atEnd';
 
-export type VendorModelSlot = 'single' | 'multi';
+export type VendorModelSlot = 'single' | 'multi1D' | 'multi2D';
+
+export type VendorModelSlotPricing = 'Same' | 'Different';
 
 export type DurationUnit = 'minutes' | 'hours';
 
@@ -239,6 +241,7 @@ export interface VendorModel {
   type: VendorModelType | null;
   pricing: VendorModelPricing | null;
   slot: VendorModelSlot | null;
+  slotPricing: VendorModelSlotPricing | null;
   action: VendorModelAction | null;
   interruption: VendorModelInterruption | null;
   payment: VendorModelPayment | null;
@@ -384,6 +387,7 @@ export interface VendorModelCreateRequest {
   type?: VendorModelType;
   pricing?: VendorModelPricing;
   slot?: VendorModelSlot;
+  slotPricing?: VendorModelSlotPricing;
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
@@ -395,6 +399,7 @@ export interface VendorModelUpdateRequest {
   type?: VendorModelType;
   pricing?: VendorModelPricing;
   slot?: VendorModelSlot;
+  slotPricing?: VendorModelSlotPricing;
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
