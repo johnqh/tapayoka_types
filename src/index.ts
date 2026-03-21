@@ -261,6 +261,19 @@ export interface VendorInstallation {
   updatedAt: Date | null;
 }
 
+export interface VendorInstallationSlot {
+  id: string;
+  installationWalletAddress: string;
+  label: string;
+  row: string | null;
+  column: string | null;
+  sortOrder: number;
+  pricingTierId: string | null;
+  pricingTier: PricingTier | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
 // =============================================================================
 // Request Types — Buyer Endpoints
 // =============================================================================
@@ -426,6 +439,29 @@ export interface VendorInstallationUpdateRequest {
   vendorOfferingId?: string;
   pricingTierId?: string | null;
   pricingTier?: PricingTier | null;
+}
+
+export interface VendorInstallationSlotCreateRequest {
+  label: string;
+  row?: string;
+  column?: string;
+  sortOrder?: number;
+  pricingTierId?: string;
+  pricingTier?: PricingTier;
+}
+
+export interface VendorInstallationSlotUpdateRequest {
+  label?: string;
+  row?: string | null;
+  column?: string | null;
+  sortOrder?: number;
+  pricingTierId?: string | null;
+  pricingTier?: PricingTier | null;
+}
+
+export interface VendorInstallationSlotBulkCreateRequest {
+  rows: string[];
+  columns: string[];
 }
 
 // =============================================================================
@@ -645,6 +681,11 @@ export type VendorOfferingListResponse = BaseResponse<VendorOffering[]>;
 export type VendorOfferingResponse = BaseResponse<VendorOffering>;
 export type VendorInstallationListResponse = BaseResponse<VendorInstallation[]>;
 export type VendorInstallationResponse = BaseResponse<VendorInstallation>;
+export type VendorInstallationSlotListResponse = BaseResponse<
+  VendorInstallationSlot[]
+>;
+export type VendorInstallationSlotResponse =
+  BaseResponse<VendorInstallationSlot>;
 
 // Health check
 export interface HealthCheckData {
