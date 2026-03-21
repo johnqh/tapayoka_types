@@ -53,7 +53,7 @@ export type VendorModelPayment = 'atStart' | 'atEnd';
 
 export type VendorModelSlot = 'single' | 'multi1D' | 'multi2D';
 
-export type VendorModelSlotPricing = 'Same' | 'Different' | 'Tiered';
+export type VendorModelSlotPricing = 'Tiered' | 'Unique';
 
 export type DurationUnit = 'minutes' | 'hours';
 
@@ -81,8 +81,10 @@ export interface OfferingSignal {
   duration: number;
 }
 
-export interface VariablePricingConfig {
+export interface VariablePricingTier {
   type: 'variable';
+  id: string;
+  name: string;
   currencyCode: string;
   startPrice: string;
   startDuration: number;
@@ -93,27 +95,16 @@ export interface VariablePricingConfig {
   pinNumber: number;
 }
 
-export interface FixedPricingConfig {
+export interface FixedPricingTier {
   type: 'fixed';
+  id: string;
+  name: string;
   currencyCode: string;
   price: string;
   signals: OfferingSignal[];
 }
 
-export interface SlotPricing {
-  name: string;
-  pricing: VariablePricingConfig | FixedPricingConfig;
-}
-
-export interface MultiSlotPricingConfig {
-  type: 'multi';
-  slots: SlotPricing[];
-}
-
-export type VendorOfferingPricing =
-  | VariablePricingConfig
-  | FixedPricingConfig
-  | MultiSlotPricingConfig;
+export type PricingTier = VariablePricingTier | FixedPricingTier;
 
 // =============================================================================
 // Domain Models (database entities)
@@ -255,7 +246,7 @@ export interface VendorOffering {
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  pricing: VendorOfferingPricing;
+  pricingTiers: PricingTier[];
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -264,6 +255,8 @@ export interface VendorInstallation {
   walletAddress: string;
   vendorOfferingId: string;
   label: string;
+  pricingTierId: string | null;
+  pricingTier: PricingTier | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -410,25 +403,29 @@ export interface VendorOfferingCreateRequest {
   vendorLocationId: string;
   vendorModelId: string;
   name: string;
-  pricing: VendorOfferingPricing;
+  pricingTiers: PricingTier[];
 }
 
 export interface VendorOfferingUpdateRequest {
   vendorLocationId?: string;
   vendorModelId?: string;
   name?: string;
-  pricing?: VendorOfferingPricing;
+  pricingTiers?: PricingTier[];
 }
 
 export interface VendorInstallationCreateRequest {
   walletAddress: string;
   vendorOfferingId: string;
   label: string;
+  pricingTierId?: string;
+  pricingTier?: PricingTier;
 }
 
 export interface VendorInstallationUpdateRequest {
   label?: string;
   vendorOfferingId?: string;
+  pricingTierId?: string | null;
+  pricingTier?: PricingTier | null;
 }
 
 // =============================================================================
