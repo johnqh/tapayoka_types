@@ -55,6 +55,8 @@ export type VendorModelSlot = 'single' | 'multi1D' | 'multi2D';
 
 export type VendorModelSlotPricing = 'Tiered' | 'Unique';
 
+export type VendorEntityStatus = 'Active' | 'Inactive' | 'Deleted';
+
 export type DurationUnit = 'minutes' | 'hours';
 
 export type DayOfWeek =
@@ -222,6 +224,7 @@ export interface VendorLocation {
   stateProvince: string;
   zipcode: string;
   country: string;
+  status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -237,7 +240,7 @@ export interface VendorModel {
   action: VendorModelAction | null;
   interruption: VendorModelInterruption | null;
   payment: VendorModelPayment | null;
-  schedule: DailySchedule[] | null;
+  status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -248,6 +251,8 @@ export interface VendorOffering {
   vendorModelId: string;
   name: string;
   pricingTiers: PricingTier[];
+  schedule: DailySchedule[] | null;
+  status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -256,8 +261,7 @@ export interface VendorInstallation {
   walletAddress: string;
   vendorOfferingId: string;
   label: string;
-  pricingTierId: string | null;
-  pricingTier: PricingTier | null;
+  status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -271,6 +275,7 @@ export interface VendorInstallationSlot {
   sortOrder: number;
   pricingTierId: string | null;
   pricingTier: PricingTier | null;
+  status: VendorEntityStatus;
   available?: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -400,7 +405,6 @@ export interface VendorModelCreateRequest {
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
-  schedule?: DailySchedule[];
 }
 
 export interface VendorModelUpdateRequest {
@@ -412,7 +416,6 @@ export interface VendorModelUpdateRequest {
   action?: VendorModelAction;
   interruption?: VendorModelInterruption;
   payment?: VendorModelPayment;
-  schedule?: DailySchedule[] | null;
 }
 
 export interface VendorOfferingCreateRequest {
@@ -420,6 +423,7 @@ export interface VendorOfferingCreateRequest {
   vendorModelId: string;
   name: string;
   pricingTiers: PricingTier[];
+  schedule?: DailySchedule[];
 }
 
 export interface VendorOfferingUpdateRequest {
@@ -427,21 +431,18 @@ export interface VendorOfferingUpdateRequest {
   vendorModelId?: string;
   name?: string;
   pricingTiers?: PricingTier[];
+  schedule?: DailySchedule[] | null;
 }
 
 export interface VendorInstallationCreateRequest {
   walletAddress: string;
   vendorOfferingId: string;
   label: string;
-  pricingTierId?: string;
-  pricingTier?: PricingTier;
 }
 
 export interface VendorInstallationUpdateRequest {
   label?: string;
   vendorOfferingId?: string;
-  pricingTierId?: string | null;
-  pricingTier?: PricingTier | null;
 }
 
 export interface VendorInstallationSlotCreateRequest {
@@ -476,6 +477,20 @@ export interface DeviceVerifyResponse {
   device: Device;
   offerings: Offering[];
   slotType: VendorModelSlot | null;
+}
+
+/** Buyer installation info (operating hours, model type) */
+export interface BuyerInstallationInfo {
+  label: string;
+  modelType: VendorModelType | null;
+  operating: boolean;
+}
+
+/** Buyer slot detail (pricing, availability) */
+export interface BuyerSlotDetail {
+  label: string;
+  pricingTier: PricingTier | null;
+  available: boolean;
 }
 
 /** Response with signed authorization */
@@ -663,6 +678,10 @@ export type OrderResponse = BaseResponse<Order>;
 
 // Authorization responses
 export type AuthorizationApiResponse = BaseResponse<AuthorizationResponse>;
+
+// Buyer info responses
+export type BuyerInstallationInfoResponse = BaseResponse<BuyerInstallationInfo>;
+export type BuyerSlotDetailResponse = BaseResponse<BuyerSlotDetail>;
 
 // Dashboard responses
 export type DashboardStatsResponse = BaseResponse<DashboardStats>;
