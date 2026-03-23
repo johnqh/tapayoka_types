@@ -20,7 +20,7 @@ import type { Optional, BaseResponse } from '@sudobility/types';
 // Enums
 // =============================================================================
 
-export type OfferingType = 'TRIGGER' | 'FIXED' | 'VARIABLE';
+export type OfferingType = 'TRIGGER' | 'FIXED' | 'TIMED';
 
 export type OrderStatus =
   | 'CREATED'
@@ -43,7 +43,7 @@ export type VendorModelType =
   | 'Locker'
   | 'Vending';
 
-export type VendorModelPricing = 'fixed' | 'variable';
+export type VendorModelPricing = 'fixed' | 'timed';
 
 export type VendorModelAction = 'timed' | 'sequence';
 
@@ -83,8 +83,8 @@ export interface OfferingSignal {
   duration: number;
 }
 
-export interface VariablePricingTier {
-  type: 'variable';
+export interface TimedPricingTier {
+  type: 'timed';
   id: string;
   name: string;
   currencyCode: string;
@@ -106,7 +106,7 @@ export interface FixedPricingTier {
   signals: OfferingSignal[];
 }
 
-export type PricingTier = VariablePricingTier | FixedPricingTier;
+export type PricingTier = TimedPricingTier | FixedPricingTier;
 
 // =============================================================================
 // Domain Models (database entities)
