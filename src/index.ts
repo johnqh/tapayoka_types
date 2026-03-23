@@ -14,7 +14,7 @@ export type {
   PaginationOptions,
 } from '@sudobility/types';
 
-import type { Optional, BaseResponse } from '@sudobility/types';
+import type { BaseResponse } from '@sudobility/types';
 
 // =============================================================================
 // Enums
@@ -30,8 +30,6 @@ export type OrderStatus =
   | 'DONE'
   | 'FAILED';
 
-export type DeviceStatus = 'ACTIVE' | 'OFFLINE' | 'MAINTENANCE' | 'DEACTIVATED';
-
 export type UserRole = 'vendor' | 'buyer';
 
 export type LogDirection = 'PI_TO_SRV' | 'SRV_TO_PI';
@@ -43,7 +41,7 @@ export type VendorModelType =
   | 'Locker'
   | 'Vending';
 
-export type VendorModelPricing = 'fixed' | 'timed';
+export type VendorModelPricing = 'fixed' | 'variable';
 
 export type VendorModelAction = 'timed' | 'sequence';
 
@@ -132,47 +130,11 @@ export interface UserProfile {
   tosAcceptedAt: string | null;
 }
 
-export interface Device {
-  walletAddress: string;
-  entityId: string;
-  label: string;
-  model: string | null;
-  location: string | null;
-  gpioConfig: GpioConfig | null;
-  status: DeviceStatus;
-  serverWalletAddress: string | null;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-}
-
-export interface GpioConfig {
-  pin: number;
-  activeLow?: boolean;
-}
-
-export interface Offering {
-  id: string;
-  entityId: string;
-  name: string;
-  description: string | null;
-  type: OfferingType;
-  priceCents: number;
-  fixedMinutes: number | null;
-  minutesPer25c: number | null;
-  active: boolean;
-  createdAt: Date | null;
-  updatedAt: Date | null;
-}
-
-export interface DeviceOffering {
-  deviceWalletAddress: string;
-  offeringId: string;
-}
-
 export interface Order {
   id: string;
   deviceWalletAddress: string;
-  offeringId: string;
+  offeringId: string | null;
+  pricingTierId: string | null;
   buyerUid: string | null;
   amountCents: number;
   authorizedSeconds: number;
@@ -295,7 +257,7 @@ export interface DeviceVerifyRequest {
 /** Create a new order */
 export interface CreateOrderRequest {
   deviceWalletAddress: string;
-  offeringId: string;
+  pricingTierId: string;
   amountCents: number;
   slotId?: string;
 }
@@ -317,61 +279,6 @@ export interface TelemetryEventRequest {
   direction: LogDirection;
   ok: boolean;
   details?: string;
-}
-
-// =============================================================================
-// Request Types — Vendor Endpoints
-// =============================================================================
-
-/** Register a new device */
-export interface DeviceCreateRequest {
-  walletAddress: string;
-  label: string;
-  model: Optional<string>;
-  location: Optional<string>;
-  gpioConfig: Optional<GpioConfig>;
-}
-
-/** Update an existing device */
-export interface DeviceUpdateRequest {
-  label: Optional<string>;
-  model: Optional<string>;
-  location: Optional<string>;
-  gpioConfig: Optional<GpioConfig>;
-  status: Optional<DeviceStatus>;
-}
-
-/** Create a new installation */
-export interface OfferingCreateRequest {
-  name: string;
-  description: Optional<string>;
-  type: OfferingType;
-  priceCents: number;
-  fixedMinutes: Optional<number>;
-  minutesPer25c: Optional<number>;
-}
-
-/** Update an existing installation */
-export interface OfferingUpdateRequest {
-  name: Optional<string>;
-  description: Optional<string>;
-  type: Optional<OfferingType>;
-  priceCents: Optional<number>;
-  fixedMinutes: Optional<number>;
-  minutesPer25c: Optional<number>;
-  active: Optional<boolean>;
-}
-
-/** Assign offerings to a device */
-export interface DeviceOfferingAssignRequest {
-  offeringIds: string[];
-}
-
-/** Generate QR code for a device */
-export interface QrGenerateRequest {
-  deviceWalletAddress: string;
-  format?: 'svg' | 'png';
-  size?: number;
 }
 
 // =============================================================================
@@ -468,29 +375,45 @@ export interface VendorInstallationSlotBulkCreateRequest {
   columns: string[];
 }
 
+/** Generate QR code for a device */
+export interface QrGenerateRequest {
+  deviceWalletAddress: string;
+  format?: 'svg' | 'png';
+  size?: number;
+}
+
 // =============================================================================
 // Response Types — Buyer
 // =============================================================================
 
-/** Response after verifying device signature */
-export interface DeviceVerifyResponse {
-  device: Device;
-  offerings: Offering[];
-  slotType: VendorModelSlot | null;
-}
-
-/** Buyer installation info (operating hours, model type) */
-export interface BuyerInstallationInfo {
-  label: string;
-  modelType: VendorModelType | null;
+/** Combined response after verifying device signature */
+export interface BuyerVerifyResponse {
+  model: {
+    name: string;
+    slot: VendorModelSlot | null;
+    pricing: VendorModelPricing | null;
+    slotPricing: VendorModelSlotPricing | null;
+    action: VendorModelAction | null;
+    interruption: VendorModelInterruption | null;
+    payment: VendorModelPayment | null;
+  };
+  installation: {
+    name: string;
+  };
   operating: boolean;
-}
-
-/** Buyer slot detail (pricing, availability) */
-export interface BuyerSlotDetail {
-  label: string;
-  pricingTier: PricingTier | null;
-  available: boolean;
+  operatingPeriod: {
+    start: string;
+    end: string;
+  } | null;
+  slots: Array<{
+    id: string;
+    label: string;
+    row: string | null;
+    column: string | null;
+    sortOrder: number;
+    pricingTier: PricingTier | null;
+    available: boolean;
+  }>;
 }
 
 /** Response with signed authorization */
@@ -522,19 +445,6 @@ export interface OrdersChartData {
   revenueCents: number;
 }
 
-/** Device status distribution */
-export interface DeviceStatusData {
-  status: DeviceStatus;
-  count: number;
-}
-
-/** Device with summary info */
-export interface DeviceSummary extends Device {
-  serviceCount: number;
-  totalOrders: number;
-  lastOrderAt: Date | null;
-}
-
 /** Order with joined details */
 export interface OrderDetailed extends Order {
   deviceLabel: string;
@@ -556,12 +466,6 @@ export interface QrCodeResponse {
 export interface OrderQueryParams {
   status?: OrderStatus;
   deviceWalletAddress?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface DeviceQueryParams {
-  status?: DeviceStatus;
   limit?: number;
   offset?: number;
 }
@@ -661,15 +565,8 @@ export function errorResponse(error: string): BaseResponse<never> {
 // API Response Type Aliases
 // =============================================================================
 
-// Device responses
-export type DeviceListResponse = BaseResponse<Device[]>;
-export type DeviceSummaryListResponse = BaseResponse<DeviceSummary[]>;
-export type DeviceResponse = BaseResponse<Device>;
-export type DeviceVerifyApiResponse = BaseResponse<DeviceVerifyResponse>;
-
-// Offering responses
-export type OfferingListResponse = BaseResponse<Offering[]>;
-export type OfferingResponse = BaseResponse<Offering>;
+// Buyer responses
+export type BuyerVerifyApiResponse = BaseResponse<BuyerVerifyResponse>;
 
 // Order responses
 export type OrderListResponse = BaseResponse<Order[]>;
@@ -679,14 +576,9 @@ export type OrderResponse = BaseResponse<Order>;
 // Authorization responses
 export type AuthorizationApiResponse = BaseResponse<AuthorizationResponse>;
 
-// Buyer info responses
-export type BuyerInstallationInfoResponse = BaseResponse<BuyerInstallationInfo>;
-export type BuyerSlotDetailResponse = BaseResponse<BuyerSlotDetail>;
-
 // Dashboard responses
 export type DashboardStatsResponse = BaseResponse<DashboardStats>;
 export type OrdersChartResponse = BaseResponse<OrdersChartData[]>;
-export type DeviceStatusResponse = BaseResponse<DeviceStatusData[]>;
 
 // QR responses
 export type QrCodeApiResponse = BaseResponse<QrCodeResponse>;
