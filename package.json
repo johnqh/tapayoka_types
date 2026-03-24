@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/tapayoka_types",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "TypeScript types for Tapayoka - QR-to-device cashless payment system",
   "type": "module",
   "main": "./dist/index.js",
@@ -40,11 +40,11 @@
   "author": "Sudobility",
   "license": "BUSL-1.1",
   "peerDependencies": {
-    "@sudobility/types": "^1.9.59"
+    "@sudobility/types": "^1.9.60"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@sudobility/types": "^1.9.59",
+    "@sudobility/types": "^1.9.60",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "eslint": "^9.39.2",
@@ -57,5 +57,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/johnqh/tapayoka_types.git"
   }
 }
