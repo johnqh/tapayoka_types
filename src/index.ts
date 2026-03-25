@@ -534,9 +534,14 @@ export const BLE_DEVICE_NAME_PREFIX = 'tapayoka-';
 
 /** Signed message with Ethereum wallet */
 export interface EthSignedMessage {
+  walletAddress: string;
   message: string;
   signature: string;
-  address: string;
+}
+
+/** API response with optional cryptographic signing */
+export interface SignedApiResponse<T = unknown> extends BaseResponse<T> {
+  signing?: EthSignedMessage;
 }
 
 // =============================================================================
@@ -559,6 +564,53 @@ export function errorResponse(error: string): BaseResponse<never> {
     error,
     timestamp: new Date().toISOString(),
   };
+}
+
+/** Create a signed success response by signing JSON.stringify(data) */
+export async function signedSuccessResponse<T>(
+  data: T,
+  walletAddress: string,
+  signFn: (message: string) => Promise<string>
+): Promise<SignedApiResponse<T>> {
+  const message = JSON.stringify(data);
+  const signature = await signFn(message);
+  return {
+    success: true,
+    data,
+    timestamp: new Date().toISOString(),
+    signing: { walletAddress, message, signature },
+  };
+}
+
+/**
+ * Verify that a signed response's data matches its signing.message.
+ * Decodes signing.message as JSON and deep-compares with data.
+ */
+export function verifySignedResponseData<T>(
+  response: SignedApiResponse<T>
+): boolean {
+  if (!response.signing || response.data == null) return false;
+  try {
+    const decoded = JSON.parse(response.signing.message);
+    return JSON.stringify(decoded) === JSON.stringify(response.data);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Verify that a signing payload's signature is valid.
+ * Accepts an injected verifyFn so the types package stays dependency-free.
+ */
+export function verifySignedResponseSignature(
+  signing: EthSignedMessage,
+  verifyFn: (
+    message: string,
+    signature: string,
+    walletAddress: string
+  ) => boolean
+): boolean {
+  return verifyFn(signing.message, signing.signature, signing.walletAddress);
 }
 
 // =============================================================================
