@@ -154,13 +154,6 @@ export interface Authorization {
   createdAt: Date | null;
 }
 
-/** Slim authorization info returned to buyer — crypto details are in the `pi` field */
-export interface AuthorizationSummary {
-  id: string;
-  orderId: string;
-  expiresAt: Date;
-}
-
 export interface DeviceLog {
   id: string;
   deviceWalletAddress: string;
@@ -546,8 +539,9 @@ export interface EthSignedMessage {
   signature: string;
 }
 
-/** Generic signed data envelope — data + cryptographic proof */
-export interface SignedData<T = unknown> {
+/** Generic signed data envelope — data + cryptographic proof.
+ * T must be an object because signing_timestamp is injected into the message. */
+export interface SignedData<T extends object = Record<string, unknown>> {
   data: T;
   signing: EthSignedMessage;
 }
@@ -597,13 +591,15 @@ export function errorResponse(error: string): BaseResponse<never> {
   };
 }
 
-/** Sign data and wrap into a SignedData envelope */
-export async function signData<T>(
+/** Sign data and wrap into a SignedData envelope.
+ * Injects signing_timestamp into the message to prevent replay attacks. */
+export async function signData<T extends object>(
   data: T,
   walletAddress: string,
   signFn: (message: string) => Promise<string>
 ): Promise<SignedData<T>> {
-  const message = JSON.stringify(data);
+  const messageObj = { ...data, signing_timestamp: new Date().toISOString() };
+  const message = JSON.stringify(messageObj);
   const signature = await signFn(message);
   return {
     data,
@@ -612,7 +608,7 @@ export async function signData<T>(
 }
 
 /** Create a signed success response: ApiResponse<SignedData<T>> */
-export async function signedSuccessResponse<T>(
+export async function signedSuccessResponse<T extends object>(
   data: T,
   walletAddress: string,
   signFn: (message: string) => Promise<string>
@@ -627,13 +623,24 @@ export async function signedSuccessResponse<T>(
 
 /**
  * Verify that a SignedData's data matches its signing.message.
- * Decodes signing.message as JSON and deep-compares with data.
+ * Checks signing_timestamp is present and within maxAgeMs (default 30s),
+ * then removes it and deep-compares the rest with data.
  */
-export function verifySignedData<T>(signed: SignedData<T>): boolean {
+export function verifySignedData<T extends object>(
+  signed: SignedData<T>,
+  maxAgeMs = 30_000
+): boolean {
   if (!signed.signing || signed.data == null) return false;
   try {
     const decoded = JSON.parse(signed.signing.message);
-    return JSON.stringify(decoded) === JSON.stringify(signed.data);
+    const { signing_timestamp, ...rest } = decoded;
+
+    if (!signing_timestamp) return false;
+    const ts = new Date(signing_timestamp).getTime();
+    if (isNaN(ts)) return false;
+    if (Math.abs(Date.now() - ts) > maxAgeMs) return false;
+
+    return JSON.stringify(rest) === JSON.stringify(signed.data);
   } catch {
     return false;
   }
@@ -666,8 +673,8 @@ export type OrderListResponse = BaseResponse<Order[]>;
 export type OrderDetailedListResponse = BaseResponse<OrderDetailed[]>;
 export type OrderResponse = BaseResponse<Order>;
 
-// Authorization responses
-export type AuthorizationApiResponse = PiApiResponse<AuthorizationSummary>;
+// Authorization responses (returns the Order with a PiCommand)
+export type AuthorizationApiResponse = PiApiResponse<Order>;
 
 // Dashboard responses
 export type DashboardStatsResponse = BaseResponse<DashboardStats>;
