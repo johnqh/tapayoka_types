@@ -223,6 +223,7 @@ export interface VendorInstallation {
   walletAddress: string;
   vendorOfferingId: string;
   label: string;
+  connectionString: string | null;
   status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -342,9 +343,11 @@ export interface VendorOfferingUpdateRequest {
 }
 
 export interface VendorInstallationCreateRequest {
-  walletAddress: string;
+  data: { walletAddress: string };
+  signing: EthSignedMessage;
   vendorOfferingId: string;
   label: string;
+  connectionString?: string;
 }
 
 export interface VendorInstallationUpdateRequest {
@@ -481,13 +484,6 @@ export interface LogQueryParams {
 // BLE Protocol Types
 // =============================================================================
 
-/** Challenge payload device signs to prove identity */
-export interface BleDeviceChallenge {
-  walletAddress: string;
-  timestamp: number;
-  nonce: string;
-}
-
 /** Authorization payload sent to device via BLE */
 export interface AuthorizationPayload {
   orderId: string;
@@ -502,6 +498,8 @@ export interface BleCommand {
   command: 'SETUP_SERVER' | 'AUTHORIZE' | 'ON' | 'OFF' | 'STATUS';
   payload?: string;
   signature?: string;
+  data?: Record<string, unknown>;
+  signing?: EthSignedMessage;
 }
 
 /** BLE response from device */
@@ -516,6 +514,14 @@ export interface BleDeviceInfo {
   walletAddress: string;
   firmwareVersion: string;
   hasServerWallet: boolean;
+  timestamp: number;
+  nonce: string;
+}
+
+/** Device info envelope with signing (returned by Pi) */
+export interface BleDeviceInfoEnvelope {
+  data: BleDeviceInfo;
+  signing: EthSignedMessage;
 }
 
 // =============================================================================
