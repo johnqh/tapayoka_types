@@ -343,8 +343,7 @@ export interface VendorOfferingUpdateRequest {
 }
 
 export interface VendorInstallationCreateRequest {
-  data: { walletAddress: string };
-  signing: EthSignedMessage;
+  deviceProof: SignedData<{ walletAddress: string }>;
   vendorOfferingId: string;
   label: string;
   connectionString?: string;
@@ -518,12 +517,6 @@ export interface BleDeviceInfo {
   nonce: string;
 }
 
-/** Device info envelope with signing (returned by Pi) */
-export interface BleDeviceInfoEnvelope {
-  data: BleDeviceInfo;
-  signing: EthSignedMessage;
-}
-
 // =============================================================================
 // BLE Service UUIDs
 // =============================================================================
@@ -545,9 +538,10 @@ export interface EthSignedMessage {
   signature: string;
 }
 
-/** API response with optional cryptographic signing */
-export interface SignedApiResponse<T = unknown> extends BaseResponse<T> {
-  signing?: EthSignedMessage;
+/** Generic signed data envelope — data + cryptographic proof */
+export interface SignedData<T = unknown> {
+  data: T;
+  signing: EthSignedMessage;
 }
 
 // =============================================================================
@@ -572,33 +566,43 @@ export function errorResponse(error: string): BaseResponse<never> {
   };
 }
 
-/** Create a signed success response by signing JSON.stringify(data) */
-export async function signedSuccessResponse<T>(
+/** Sign data and wrap into a SignedData envelope */
+export async function signData<T>(
   data: T,
   walletAddress: string,
   signFn: (message: string) => Promise<string>
-): Promise<SignedApiResponse<T>> {
+): Promise<SignedData<T>> {
   const message = JSON.stringify(data);
   const signature = await signFn(message);
   return {
-    success: true,
     data,
-    timestamp: new Date().toISOString(),
     signing: { walletAddress, message, signature },
   };
 }
 
+/** Create a signed success response: ApiResponse<SignedData<T>> */
+export async function signedSuccessResponse<T>(
+  data: T,
+  walletAddress: string,
+  signFn: (message: string) => Promise<string>
+): Promise<BaseResponse<SignedData<T>>> {
+  const signed = await signData(data, walletAddress, signFn);
+  return {
+    success: true,
+    data: signed,
+    timestamp: new Date().toISOString(),
+  };
+}
+
 /**
- * Verify that a signed response's data matches its signing.message.
+ * Verify that a SignedData's data matches its signing.message.
  * Decodes signing.message as JSON and deep-compares with data.
  */
-export function verifySignedResponseData<T>(
-  response: SignedApiResponse<T>
-): boolean {
-  if (!response.signing || response.data == null) return false;
+export function verifySignedData<T>(signed: SignedData<T>): boolean {
+  if (!signed.signing || signed.data == null) return false;
   try {
-    const decoded = JSON.parse(response.signing.message);
-    return JSON.stringify(decoded) === JSON.stringify(response.data);
+    const decoded = JSON.parse(signed.signing.message);
+    return JSON.stringify(decoded) === JSON.stringify(signed.data);
   } catch {
     return false;
   }
@@ -608,7 +612,7 @@ export function verifySignedResponseData<T>(
  * Verify that a signing payload's signature is valid.
  * Accepts an injected verifyFn so the types package stays dependency-free.
  */
-export function verifySignedResponseSignature(
+export function verifySignedDataSignature(
   signing: EthSignedMessage,
   verifyFn: (
     message: string,
