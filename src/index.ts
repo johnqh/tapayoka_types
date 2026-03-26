@@ -189,6 +189,7 @@ export interface VendorLocation {
   status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
+  offeringCount?: number;
 }
 
 export interface VendorModel {
@@ -205,6 +206,7 @@ export interface VendorModel {
   status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
+  offeringCount?: number;
 }
 
 export interface VendorOffering {
@@ -217,6 +219,7 @@ export interface VendorOffering {
   status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
+  installationCount?: number;
 }
 
 export interface VendorInstallation {
