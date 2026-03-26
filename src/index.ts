@@ -154,6 +154,13 @@ export interface Authorization {
   createdAt: Date | null;
 }
 
+/** Slim authorization info returned to buyer — crypto details are in the `pi` field */
+export interface AuthorizationSummary {
+  id: string;
+  orderId: string;
+  expiresAt: Date;
+}
+
 export interface DeviceLog {
   id: string;
   deviceWalletAddress: string;
@@ -418,13 +425,6 @@ export interface BuyerVerifyResponse {
   }>;
 }
 
-/** Response with signed authorization */
-export interface AuthorizationResponse {
-  authorization: Authorization;
-  payload: AuthorizationPayload;
-  serverSignature: string;
-}
-
 // =============================================================================
 // Response Types — Vendor
 // =============================================================================
@@ -492,14 +492,22 @@ export interface AuthorizationPayload {
   exp: number;
 }
 
-/** BLE command sent from buyer app to device */
-export interface BleCommand {
-  command: 'SETUP_SERVER' | 'AUTHORIZE' | 'ON' | 'OFF' | 'STATUS';
-  payload?: string;
-  signature?: string;
-  data?: Record<string, unknown>;
-  signing?: EthSignedMessage;
+/** Command sent to a Pi device via BLE or WebSocket.
+ *
+ * SETUP_SERVER: Vendor flow — verify signature, save server wallet address on device.
+ * EXECUTE:      Buyer flow — verify signature AND signer matches stored server wallet, then execute.
+ *
+ * The Pi never accepts unsigned commands. Every command includes signed data.
+ * The `pi` field in API responses contains this object, ready to relay to the device.
+ */
+export interface PiCommand {
+  command: 'SETUP_SERVER' | 'EXECUTE';
+  data: Record<string, unknown>;
+  signing: EthSignedMessage;
 }
+
+/** @deprecated Use PiCommand instead */
+export type BleCommand = PiCommand;
 
 /** BLE response from device */
 export interface BleDeviceResponse {
@@ -545,6 +553,19 @@ export interface SignedData<T = unknown> {
 }
 
 // =============================================================================
+// Pi API Response
+// =============================================================================
+
+/** API response that includes a Pi command to relay to the device.
+ *
+ * Any API endpoint can include a `pi` field. When the app sees `pi` in a response,
+ * it sends the object directly to the connected Pi device via BLE — no app logic needed.
+ */
+export interface PiApiResponse<T = unknown> extends BaseResponse<T> {
+  pi?: PiCommand;
+}
+
+// =============================================================================
 // Response Helper Functions
 // =============================================================================
 
@@ -553,6 +574,16 @@ export function successResponse<T>(data: T): BaseResponse<T> {
   return {
     success: true,
     data,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/** Create a success response with a Pi command to relay to the device */
+export function piSuccessResponse<T>(data: T, pi: PiCommand): PiApiResponse<T> {
+  return {
+    success: true,
+    data,
+    pi,
     timestamp: new Date().toISOString(),
   };
 }
@@ -636,7 +667,7 @@ export type OrderDetailedListResponse = BaseResponse<OrderDetailed[]>;
 export type OrderResponse = BaseResponse<Order>;
 
 // Authorization responses
-export type AuthorizationApiResponse = BaseResponse<AuthorizationResponse>;
+export type AuthorizationApiResponse = PiApiResponse<AuthorizationSummary>;
 
 // Dashboard responses
 export type DashboardStatsResponse = BaseResponse<DashboardStats>;
