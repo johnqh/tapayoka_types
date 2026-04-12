@@ -220,6 +220,8 @@ export interface VendorOffering {
   createdAt: Date | null;
   updatedAt: Date | null;
   installationCount?: number;
+  modelName?: string;
+  locationName?: string;
 }
 
 export interface VendorInstallation {
@@ -230,6 +232,7 @@ export interface VendorInstallation {
   status: VendorEntityStatus;
   createdAt: Date | null;
   updatedAt: Date | null;
+  slotCount?: number;
 }
 
 export interface VendorInstallationSlot {
@@ -705,6 +708,12 @@ export type VendorInstallationSlotListResponse = BaseResponse<
 export type VendorInstallationSlotResponse =
   BaseResponse<VendorInstallationSlot>;
 
+// Delete response
+export interface DeleteResult {
+  deleted: true;
+}
+export type DeleteResponse = BaseResponse<DeleteResult>;
+
 // Health check
 export interface HealthCheckData {
   name: string;
@@ -712,3 +721,11 @@ export interface HealthCheckData {
   status: string;
 }
 export type HealthCheckResponse = BaseResponse<HealthCheckData>;
+
+// Entity types (re-exported from @sudobility/types)
+export type {
+  Entity,
+  EntityWithRole,
+  EntityMember,
+  EntityInvitation,
+} from '@sudobility/types';
