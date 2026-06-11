@@ -289,6 +289,25 @@ export interface TelemetryEventRequest {
 }
 
 // =============================================================================
+// Types — Payment Methods
+// =============================================================================
+
+/** A saved payment method (card) */
+export interface PaymentMethod {
+  id: string;
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+}
+
+/** Response from creating a SetupIntent */
+export interface SetupIntentResponse {
+  clientSecret: string;
+}
+
+// =============================================================================
 // Request Types — Vendor Management
 // =============================================================================
 
