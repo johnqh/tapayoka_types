@@ -427,6 +427,8 @@ export interface BuyerVerifyResponse {
   installation: {
     name: string;
   };
+  /** Full offering pricing-tier menu. Used by buyers to pick a service on single-slot installations. */
+  offeringTiers?: PricingTier[];
   operating: boolean;
   operatingPeriod: {
     start: string;
