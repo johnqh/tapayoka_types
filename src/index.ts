@@ -508,6 +508,8 @@ export interface AuthorizationPayload {
   orderId: string;
   offeringType: OfferingType;
   seconds: number;
+  /** Present for FIXED tiers: the relay pulse sequence the device runs. */
+  signals?: OfferingSignal[];
   nonce: string;
   exp: number;
 }
