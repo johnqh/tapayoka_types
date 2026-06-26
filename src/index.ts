@@ -533,7 +533,7 @@ export type BleCommand = PiCommand;
 
 /** BLE response from device */
 export interface BleDeviceResponse {
-  status: 'OK' | 'ERROR' | 'BUSY' | 'UNAUTHORIZED';
+  status: 'OK' | 'ERROR' | 'BUSY' | 'UNAUTHORIZED' | 'NOT_CONFIGURED';
   message?: string;
   data?: string;
 }
