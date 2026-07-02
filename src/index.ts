@@ -81,6 +81,33 @@ export interface OfferingSignal {
   duration: number;
 }
 
+/**
+ * The relay behaviour associated with a purchase, decoupled from pricing.
+ *
+ * `start` fires when the session begins; `end` fires when it ends and is only
+ * present for two-phase / `atEnd` models (e.g. a locker: on at start, off at
+ * end — end-phase execution is a separate, later workstream).
+ *
+ * For a `timed` action, `start` is a single signal whose pin is held for the
+ * purchased `authorizedSeconds` (the server sets its `duration` accordingly at
+ * authorization time). For a `sequence` action, `start` is a one-shot pulse
+ * list run in order.
+ *
+ * Location depends on the model's slot type:
+ * - single-slot models (parking, laundromat) define the action on the shared
+ *   {@link PricingTier} so every same-tier device behaves identically;
+ * - multi-slot models (locker, vending) define it per {@link VendorInstallationSlot}
+ *   because each door/column is wired to its own pin.
+ *
+ * Resolved at execution time as `slot.action ?? tier.action` — see
+ * {@link resolveEffectiveAction}.
+ */
+export interface SlotAction {
+  type: VendorModelAction;
+  start: OfferingSignal[];
+  end?: OfferingSignal[];
+}
+
 export interface TimedPricingTier {
   type: 'timed';
   id: string;
@@ -92,7 +119,10 @@ export interface TimedPricingTier {
   marginalPrice: string;
   marginalDuration: number;
   marginalDurationUnit: DurationUnit;
-  pinNumber: number;
+  /** Relay behaviour for single-slot models. Preferred over {@link pinNumber}. */
+  action?: SlotAction;
+  /** @deprecated Relay pin moved to {@link action}; retained for back-compat/migration. */
+  pinNumber?: number;
 }
 
 export interface FixedPricingTier {
@@ -101,7 +131,10 @@ export interface FixedPricingTier {
   name: string;
   currencyCode: string;
   price: string;
-  signals: OfferingSignal[];
+  /** Relay behaviour for single-slot models. Preferred over {@link signals}. */
+  action?: SlotAction;
+  /** @deprecated Relay pulses moved to {@link action}; retained for back-compat/migration. */
+  signals?: OfferingSignal[];
 }
 
 export type PricingTier = TimedPricingTier | FixedPricingTier;
@@ -244,6 +277,12 @@ export interface VendorInstallationSlot {
   sortOrder: number;
   pricingTierId: string | null;
   pricingTier: PricingTier | null;
+  /**
+   * Per-slot relay behaviour for multi-slot models (each door/column has its own
+   * pin). Null for single-slot models, which define the action on the tier.
+   * Overrides the tier's action when present.
+   */
+  action: SlotAction | null;
   status: VendorEntityStatus;
   available?: boolean;
   createdAt: Date | null;
@@ -386,6 +425,7 @@ export interface VendorInstallationSlotCreateRequest {
   sortOrder?: number;
   pricingTierId?: string;
   pricingTier?: PricingTier;
+  action?: SlotAction | null;
 }
 
 export interface VendorInstallationSlotUpdateRequest {
@@ -395,6 +435,7 @@ export interface VendorInstallationSlotUpdateRequest {
   sortOrder?: number;
   pricingTierId?: string | null;
   pricingTier?: PricingTier | null;
+  action?: SlotAction | null;
 }
 
 export interface VendorInstallationSlotBulkCreateRequest {
@@ -508,8 +549,18 @@ export interface AuthorizationPayload {
   orderId: string;
   offeringType: OfferingType;
   seconds: number;
-  /** Present for FIXED tiers: the relay pulse sequence the device runs. */
+  /**
+   * The relay pulses the device runs at session start. Present for both
+   * `sequence` actions (the pulse list) and `timed` actions (a single signal
+   * whose pin is held for `seconds`). Absent only for a bare TRIGGER.
+   */
   signals?: OfferingSignal[];
+  /**
+   * The relay pulses to run at session end, for two-phase `atEnd` models
+   * (e.g. a locker's off pulse). Carried in a separate end authorization;
+   * end-phase execution is a later workstream.
+   */
+  end?: OfferingSignal[];
   nonce: string;
   exp: number;
 }
@@ -768,7 +819,68 @@ export interface AmountAndSeconds {
 
 export interface TierAuthorizationFields {
   offeringType: OfferingType;
+  /** Relay pulses to run at session start. */
   signals?: OfferingSignal[];
+  /** Relay pulses to run at session end (two-phase `atEnd` models). */
+  end?: OfferingSignal[];
+}
+
+/** Derive a {@link SlotAction} from a tier's deprecated inline relay fields. */
+function legacyTierAction(
+  tier: PricingTier | null | undefined
+): SlotAction | null {
+  if (!tier) return null;
+  if (tier.type === 'fixed') {
+    return tier.signals && tier.signals.length > 0
+      ? { type: 'sequence', start: tier.signals }
+      : null;
+  }
+  return typeof tier.pinNumber === 'number'
+    ? { type: 'timed', start: [{ pinNumber: tier.pinNumber, duration: 0 }] }
+    : null;
+}
+
+/** The action defined on a tier (single-slot models), preferring the new field. */
+export function tierAction(
+  tier: PricingTier | null | undefined
+): SlotAction | null {
+  return tier?.action ?? legacyTierAction(tier);
+}
+
+/**
+ * Resolve the relay behaviour for a purchase: a per-slot action (multi-slot
+ * models) wins; otherwise the tier's action (single-slot models).
+ */
+export function resolveEffectiveAction(
+  slot: { action?: SlotAction | null } | null | undefined,
+  tier: PricingTier | null | undefined
+): SlotAction | null {
+  return slot?.action ?? tierAction(tier);
+}
+
+/**
+ * Build the device-facing authorization fields from a resolved action.
+ * `seconds` is the purchased duration; for a `timed` action it becomes the hold
+ * time of the single start pin. This is the function the API should use once a
+ * slot + tier are resolved for an order.
+ */
+export function actionAuthorizationFields(
+  action: SlotAction | null | undefined,
+  seconds: number
+): TierAuthorizationFields {
+  if (!action || action.start.length === 0) return { offeringType: 'TRIGGER' };
+  if (action.type === 'timed') {
+    return {
+      offeringType: 'TIMED',
+      signals: [{ pinNumber: action.start[0].pinNumber, duration: seconds }],
+      ...(action.end ? { end: action.end } : {}),
+    };
+  }
+  return {
+    offeringType: 'FIXED',
+    signals: action.start,
+    ...(action.end ? { end: action.end } : {}),
+  };
 }
 
 export function durationUnitSeconds(unit: DurationUnit): number {
@@ -787,7 +899,8 @@ export function tierMinCents(tier: PricingTier): number {
 
 export function tierBaseSeconds(tier: PricingTier): number {
   if (tier.type === 'fixed') {
-    return tier.signals.reduce((sum, signal) => sum + signal.duration, 0);
+    const start = tierAction(tier)?.start ?? [];
+    return start.reduce((sum, signal) => sum + signal.duration, 0);
   }
   return tier.startDuration * durationUnitSeconds(tier.startDurationUnit);
 }
@@ -836,14 +949,18 @@ export function calculateAuthorizedSeconds(
   return startSeconds + extraUnits * tierStepSeconds(tier);
 }
 
+/**
+ * @deprecated Prefer {@link resolveEffectiveAction} + {@link actionAuthorizationFields},
+ * which incorporate the per-slot action and the purchased `seconds`. Kept for
+ * callers that only have a tier; sources its result from the tier's action.
+ */
 export function tierAuthorizationFields(
   tier: PricingTier | null | undefined
 ): TierAuthorizationFields {
-  if (!tier) return { offeringType: 'TRIGGER' };
-  if (tier.type === 'fixed') {
-    return { offeringType: 'FIXED', signals: tier.signals };
-  }
-  return { offeringType: 'TIMED' };
+  const action = tierAction(tier);
+  if (!action || action.start.length === 0) return { offeringType: 'TRIGGER' };
+  if (action.type === 'timed') return { offeringType: 'TIMED' };
+  return { offeringType: 'FIXED', signals: action.start };
 }
 
 export function formatPrice(cents: number, currency = 'USD'): string {
