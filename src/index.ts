@@ -38,8 +38,10 @@ export type VendorModelType =
   | 'Washer'
   | 'Dryer'
   | 'Parking'
+  | 'Charging'
   | 'Locker'
-  | 'Vending';
+  | 'Vending'
+  | 'Tourist Binocular';
 
 export type VendorModelPricing = 'fixed' | 'variable';
 
